@@ -5,6 +5,8 @@ Run from the repository root:
 
 Outputs are written to paper/figures/ as PDF and PNG.  Each chart is a separate
 file so that the final composite can be assembled in LaTeX without rasterizing.
+The script deliberately uses Matplotlib mathtext instead of an external LaTeX
+installation, making the figures reproducible on laptops and in CI.
 """
 
 from __future__ import annotations
@@ -23,8 +25,9 @@ plt.rcParams.update({
     "xtick.labelsize": 7.2,
     "ytick.labelsize": 7.2,
     "legend.fontsize": 7.2,
-    "text.usetex": True,
-    "text.latex.preamble": r"\usepackage{amsmath,amssymb}",
+    "text.usetex": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
 })
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -239,7 +242,7 @@ def main() -> None:
     compute_phase(rows)
     allocation_exponents()
     adamw_schedule(rows)
-    print(f"Wrote figure PDFs and PNGs to {OUT}")
+    print(f"Wrote figures to {OUT}")
 
 
 if __name__ == "__main__":
