@@ -1,0 +1,51 @@
+% Additional experimental detail for the AAAI main paper.
+
+\subsection{Protocol, robustness, and falsification tests}
+
+\paragraph{Protocol and diagnostic.}
+The deterministic filter experiments evaluate the exact spectral sums in \eqref{eq:filter-law}.  Stochastic experiments train mini-batch Gaussian regression with SGD, RMSProp, Adam, AdamW, a coordinatewise oracle $P=\diag(\Sigma)^{-1/2}$, and a full spectral oracle $P=\Sigma^{-1/2}$, with damping when needed.  The controlled visible-profile experiment uses dimension $2048$, $(a,b)=(1.5,1.4)$, five trials, and $\theta\in\{0,.25,.5,.75,1\}$.  The wide-LR random-feature experiment uses feature dimension $256$, ambient dimension $2048$, batch size $16$, 16,000 updates, ten trials, and adaptive learning rates from $3\times10^{-4}$ to $10^{-1}$.  For each optimizer we report the learning rate with the lowest final mean risk.  We estimate $\qeff=1-\widehat\alpha/\widehat a$ from a common central rank window of the original and effective spectra.
+
+\paragraph{Exponent robustness.}
+To test that the main identity is not specific to the headline setting, we additionally sweep
+\[
+ a\in\{1.25,1.5,2,3\},
+ \qquad
+ \theta\in\{0,.25,.5,.75,1\}.
+\]
+Across all 20 combinations, the fitted effective-spectrum exponent, $\qeff$, and learned-count slope agree with their theoretical values to the errors in Table~\ref{tab:robustness}.  Integer mode counts and finite fitting windows account for the slightly larger learned-count discrepancy.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Final 20-setting exponent robustness sweep.}
+\label{tab:robustness}
+\begin{tabular}{lcc}
+\toprule
+Quantity & Prediction & Max. abs. error\\
+\midrule
+Effective exponent & $a(1-\theta/2)$ & $1.25\times10^{-3}$\\
+Optimizer exponent & $\theta/2$ & $4.16\times10^{-4}$\\
+Learned-count slope & $1/[a(1-\theta/2)]$ & $1.31\times10^{-2}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Source-condition diagnostics.}
+The transformed source condition in Theorem~\ref{thm:risk} is exact for spectral preconditioners and is preserved blockwise for invariant band rotations.  We verify this numerically.  Aligned and scalar-preconditioned coordinates recover the target source exponent to numerical precision.  Band-limited rotations preserve total source mass exactly and show only finite-band slope deviations.  Haar rotations can redistribute source mass across effective eigenvectors, which is why we state the transformed-source assumption explicitly and do not infer a sharp noncommuting online risk theorem from $\qeff$ alone.
+
+\paragraph{Falsification controls.}
+Three controls are particularly important.  First, optimizer-specific learning-rate grids ensure that the aligned-versus-mixed split is not caused by a favored step size.  Second, the coordinate oracle and spectral oracle distinguish what is available to a diagonal method from what is present in the covariance itself.  Third, compute-dependent AdamW sweeps distinguish a transient risk reduction from recovery of the asymptotic no-decay law.  Each control can falsify a different over-strong interpretation of the visible-spectrum claim.
+
+\subsection{Practical diagnostic}
+
+The theory suggests a lightweight workflow for deciding whether an adaptive optimizer can change a scaling forecast:
+\begin{enumerate}
+ \item Estimate a power-law slope $\widehat a$ for the feature covariance on a stable rank window.
+ \item Estimate the slope $\widehat\alpha$ of the effective covariance induced by the optimizer's second-moment preconditioner and report $\widehat q_{\rm eff}=1-\widehat\alpha/\widehat a$.
+ \item Fit final-loss curves and $\qeff$ separately.  Better loss with $\qeff\approx0$ indicates a constant or transient gain; $\qeff>0$ predicts a changed learned-mode exponent.
+ \item If AdamW is used across compute scales, compare the decay schedule with the threshold $s_\star=\alpha/(\max\{\alpha,b\}+1)$ rather than holding effective weight decay fixed by default.
+\end{enumerate}
+This workflow is basis aware: whitening or global feature mixing can reduce the diagonal optimizer's spectral visibility even though the covariance retains the same eigenvalues.  Conversely, structured or band-limited features can make coordinatewise adaptation genuinely spectral.
+
+\paragraph{Reproducibility.}
+All reported central values are stored in a compact machine-readable table, and scripts regenerate the figures, validate numerical claims, and rerun the 20-setting robustness sweep.  The supplement records the complete optimizer grids, source construction, fitting windows, and theorem-scope distinctions.
