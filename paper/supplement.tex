@@ -1,15 +1,14 @@
 \documentclass[letterpaper]{article}
 \usepackage[submission]{aaai2027}
-\usepackage{times}
-\usepackage{helvet}
-\usepackage{courier}
-\usepackage{url}
+\usepackage[hyphens]{url}
 \usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
-\usepackage{enumitem}
 \urlstyle{rm}
 \def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
+\frenchspacing
 \pdfinfo{/TemplateVersion (2027.1)}
 
 \newtheorem{theorem}{Theorem}
@@ -43,7 +42,7 @@
 
 Let $z\sim\mathcal N(0,\Sigma)$, $y=\langle z,w^\star\rangle+\xi$, and $\E\xi^2=\sigma^2$.  We distinguish three levels of claims.
 
-\begin{enumerate}[leftmargin=1.3em]
+\begin{enumerate}
  \item The second-moment and EMA-tracking results apply to online RMSProp/Adam under the stated slow-drift and effective-window assumptions.
  \item The sharp risk filters are proved for a fixed or frozen positive preconditioner $P$.  They also extend coordinatewise to aligned online dynamics when every $P_t$ commutes with $\Sigma$ and is uniformly comparable to a fixed visible profile.
  \item For general noncommuting online feature systems, the visible-spectrum theorem is an instantaneous spectral statement; the experiments test whether its diagnostic predicts actual training behavior.
@@ -138,7 +137,7 @@ a martingale-difference sum.  By \eqref{eq:subweibull}, each summand has conditi
  C\sum_{s<t}\alpha_{t,s}^2\nu_{s,j}^2
  \le C\Lambda m_{t,j}^2.
 \]
-Truncate summands at $b=c_1\tau m_{t,j}/\log(2MN/\delta)$.  The sub-Weibull tail and the leverage condition make the total truncation-failure probability at most $\delta/(2MN)$.  Conditional Freedman's inequality for the truncated martingale gives deviation at most $\tau m_{t,j}$ with failure probability at most $\delta/(2MN)$.  A union bound over $(t,j)$ proves the first statement; combining with \eqref{eq:population-ema} proves the second.
+Truncate summands at $c_1\tau m_{t,j}/\log(2MN/\delta)$.  The sub-Weibull tail and leverage condition make the total truncation-failure probability at most $\delta/(2MN)$.  Conditional Freedman's inequality for the truncated martingale gives deviation at most $\tau m_{t,j}$ with failure probability at most $\delta/(2MN)$.  A union bound over $(t,j)$ proves the first statement; combining with \eqref{eq:population-ema} proves the second.
 \end{proof}
 
 If $c_s$ changes by at most a factor $\chi$ across the active EMA window, then $\Lambda\lesssim\chi(1-\beta_2)$ up to the exponentially small old-history tail.  Thus an effective window $(1-\beta_2)^{-1}\gtrsim\chi\tau^{-2}\log^2(2MN/\delta)$ suffices.
@@ -184,27 +183,10 @@ The ordered eigenvalues $\widetilde\mu_i$ of $\widetilde\Sigma$ obey
 $P^{1/2}\Sigma P^{1/2}$ and $\Sigma^{1/2}P\Sigma^{1/2}$ have the same nonzero eigenvalues.  Congruence of \eqref{eq:supp-visible} by $\Sigma^{1/2}$ and the min--max principle give the result because $(\Sigma^\theta+\rho I)^{-1/2}$ commutes with $\Sigma$.
 \end{proof}
 
-Suppose $\lambda_i\asymp i^{-a}$.  The damping knee satisfies $\lambda_i^\theta\asymp\rho$, so
-\[
- i_\rho\asymp\rho^{-1/(a\theta)}.
-\]
-For $i\lesssim i_\rho$,
-\[
- \widetilde\mu_i\asymp i^{-a(1-\theta/2)}.
-\]
-For $i\gtrsim i_\rho$,
-\[
- \widetilde\mu_i\asymp\rho^{-1/2}i^{-a}.
-\]
-The sample-size knee is obtained from $n\widetilde\mu_{i_\rho}\asymp1$:
-\[
- n_\rho\asymp\rho^{-(1/\theta-1/2)}.
-\]
-Solving $n\widetilde\mu_i\asymp1$ gives the learned-mode formula in the main paper.
+Suppose $\lambda_i\asymp i^{-a}$.  The damping knee satisfies $\lambda_i^\theta\asymp\rho$, so $i_\rho\asymp\rho^{-1/(a\theta)}$.  For $i\lesssim i_\rho$, $\widetilde\mu_i\asymp i^{-a(1-\theta/2)}$; for $i\gtrsim i_\rho$, $\widetilde\mu_i\asymp\rho^{-1/2}i^{-a}$.  The sample-size knee is $n_\rho\asymp\rho^{-(1/\theta-1/2)}$.  Solving $n\widetilde\mu_i\asymp1$ gives the learned-mode formula in the main paper.
 
 \section{Source Stability}
 
-\subsection{Exact spectral preconditioners}
 If $P=f(\Sigma)$, the eigenvectors are unchanged and
 \[
  \widetilde\mu_i=\lambda_if(\lambda_i),
@@ -218,38 +200,22 @@ Therefore transformed source energies are exactly invariant:
  =\lambda_i\langle v_i,w^\star\rangle^2=s_i.
 \]
 
-\subsection{Invariant spectral bands}
-Suppose $\Sigma=\operatorname{blockdiag}(\Sigma_1,\ldots,\Sigma_L)$ and $P$ has the same block decomposition.  Then source mass is exactly preserved in each block:
-\[
- (P_\ell^{-1/2}w_\ell^\star)^\top
- (P_\ell^{1/2}\Sigma_\ell P_\ell^{1/2})
- (P_\ell^{-1/2}w_\ell^\star)
- =(w_\ell^\star)^\top\Sigma_\ell w_\ell^\star.
-\]
-If eigenvalues and filters are comparable within each band, the band-averaged source exponent is unchanged.  Globally mixed cases need a transformed-source diagnostic, which we report experimentally.
+If $\Sigma$ and $P$ share an invariant block decomposition, source mass is exactly preserved in every block.  If eigenvalues and filters are comparable within a block, the band-averaged source exponent is unchanged.  Globally mixed cases require an empirical transformed-source diagnostic.
 
 \section{Sharp Risk Filters}
 
-For geometric step decay, transformed SGD has approximation, bias, and variance filters of the form
+For geometric step decay, transformed SGD has approximation, bias, and variance filters
 \begin{align}
  A_M&=\sum_{i>M}\widetilde s_i,\\
  B(n,M)&=\sum_{i\le M}\frac{\widetilde s_i}{1+n\widetilde\mu_i},\\
  V(n,M)&=\frac1{\Neff}\sum_{i\le M}\min\{1,n^2\widetilde\mu_i^2\}.
 \end{align}
-This follows from the one-pass SGD bounds of \citeauthor{lin2024scaling} (\citeyear{lin2024scaling}) after the exact transformed-feature reduction.
+These follow from the one-pass SGD bounds of \citeauthor{lin2024scaling} (\citeyear{lin2024scaling}) after the transformed-feature reduction.
 
-Let $K=\#\{i:\widetilde\mu_i\gtrsim n^{-1}\}$.  Assume on the active spectral segment $\widetilde\mu_i\asymp i^{-\alpha}$ and $\widetilde s_i\asymp i^{-b}$.
+Let $K=\#\{i:\widetilde\mu_i\gtrsim n^{-1}\}$.  Assume on the active segment $\widetilde\mu_i\asymp i^{-\alpha}$ and $\widetilde s_i\asymp i^{-b}$.
 
 \begin{theorem}[Matching spectral sums]
-If $1<b<\alpha+1$ and $K<M$, then
-\[
- B(n,M)\asymp K^{1-b}.
-\]
-If $\alpha>1/2$, then
-\[
- V(n,M)\asymp\frac{\min\{M,K\}}{\Neff}.
-\]
-Also $A_M\asymp M^{1-b}$.
+If $1<b<\alpha+1$ and $K<M$, then $B(n,M)\asymp K^{1-b}$.  If $\alpha>1/2$, then $V(n,M)\asymp\min\{M,K\}/\Neff$.  Also $A_M\asymp M^{1-b}$.
 \end{theorem}
 
 \begin{proof}
@@ -259,60 +225,37 @@ Using $(1+x)^{-1}\asymp\min\{1,x^{-1}\}$,
  \frac1n\sum_{i\le K}\frac{\widetilde s_i}{\widetilde\mu_i}
  +\sum_{K<i\le M}\widetilde s_i.
 \]
-The tail is $\asymp K^{1-b}$.  The head is
+The tail is $\asymp K^{1-b}$, while the head is
 \[
  \frac1n\sum_{i\le K}i^{\alpha-b}
- \asymp\frac{K^{\alpha-b+1}}{n}
- \asymp K^{1-b},
+ \asymp\frac{K^{\alpha-b+1}}n\asymp K^{1-b}.
 \]
-where $n\asymp K^\alpha$ and $b<\alpha+1$.  For the variance, the first $\min\{M,K\}$ terms give the lower bound.  When $K<M$,
+For variance, the first $\min\{M,K\}$ terms give the lower bound.  When $K<M$,
 \[
- n^2\sum_{i>K}\widetilde\mu_i^2
- \asymp n^2K^{1-2\alpha}\asymp K
+ n^2\sum_{i>K}\widetilde\mu_i^2\asymp n^2K^{1-2\alpha}\asymp K
 \]
-provided $\alpha>1/2$.  Two-slope damped spectra are handled by splitting the sums at the damping knee; continuity at the knee gives the same order.
+provided $\alpha>1/2$.  Two-slope damped spectra follow by splitting at the knee.
 \end{proof}
 
 \section{Compute-Optimal Allocation}
 
-For fixed $N$, minimize
+For fixed $N$, minimize $K^{1-b}+K/N$ subject to $K\le N^{1/\alpha}$.  The unconstrained optimum is $K\asymp N^{1/b}$.  If $b\le\alpha$, the time cap is active and the $N$-dependent risk is $N^{-(b-1)/\alpha}$.  If $b>\alpha$, $K\asymp N^{1/b}$ and bias and variance are both $N^{-(b-1)/b}$.  Balancing with $M^{1-b}$ under $C=MN$ gives
 \[
- K^{1-b}+K/N
+ M_\star\asymp C^{1/(m+1)},\quad
+ N_\star\asymp C^{m/(m+1)},\quad
+ K_\star\asymp C^{1/(m+1)},
 \]
-subject to $K\le N^{1/\alpha}$.  The unconstrained optimum is $K\asymp N^{1/b}$.
-
-If $b\le\alpha$, the time cap is active, $K\asymp N^{1/\alpha}$, and the $N$-dependent risk is $N^{-(b-1)/\alpha}$; variance is lower order because $b\le\alpha$.
-
-If $b>\alpha$, $K\asymp N^{1/b}$ and bias and variance are both $N^{-(b-1)/b}$.  Equivalently, the effective horizon is $n=K^\alpha\asymp N^{\alpha/b}<N$, so the optimal scalar learning rate decreases with scale.
-
-Balancing the optimized $N$-dependent term with $M^{1-b}$ under $C=MN$ yields
-\[
- M_\star\asymp C^{1/(m+1)},
- \quad N_\star\asymp C^{m/(m+1)},
- \quad K_\star\asymp C^{1/(m+1)},
-\]
-where $m=\max\{\alpha,b\}$.  The risk exponent is $(b-1)/(m+1)$.
+where $m=\max\{\alpha,b\}$, and risk exponent $(b-1)/(m+1)$.
 
 \section{Adam Momentum and AdamW}
 
-\subsection{First-moment momentum}
-For a fixed coordinate with effective eigenvalue $\mu$, let $x=\gamma\mu$.  Population Adam momentum obeys
-\[
- m_{t+1}=\beta_1m_t+(1-\beta_1)\lambda e_t,
- \qquad e_{t+1}=e_t-\gamma p m_{t+1}.
-\]
-Eliminating $m_t$ gives
+For a fixed coordinate with effective eigenvalue $\mu$, let $x=\gamma\mu$.  Population Adam momentum gives
 \[
  e_{t+1}=[1+\beta_1-(1-\beta_1)x]e_t-\beta_1e_{t-1}.
 \]
-The characteristic roots solve
-\[
- r^2-[1+\beta_1-(1-\beta_1)x]r+\beta_1=0.
-\]
-The root near one satisfies $r_+(x)=1-x+O_{\beta_1}(x^2)$; the other is $\beta_1+O_{\beta_1}(x)$.  Therefore the slow learning time remains $x^{-1}$, and momentum cannot change the spectral power.
+The characteristic root near one is $1-x+O_{\beta_1}(x^2)$; therefore the learning time remains $x^{-1}$ and momentum does not change the spectral power.
 
-\subsection{Decoupled weight decay}
-With fixed preconditioner and decay $\delta$, coordinate error satisfies
+With AdamW decay $\delta$, coordinate error satisfies
 \[
  e_{t+1}=[1-\gamma(\mu+\delta)]e_t-\gamma\delta w^\star.
 \]
@@ -320,42 +263,23 @@ With $w_0=0$ and $r=1-\gamma(\mu+\delta)$,
 \[
  e_N=-\left[\frac\delta{\mu+\delta}+\frac\mu{\mu+\delta}r^N\right]w^\star.
 \]
-Thus $\delta/(\mu+\delta)$ is an irreducible shrinkage floor, and active modes require $\mu\gtrsim\max\{n^{-1},\delta\}$.
-
-If $\delta(C)=C^{-s}$, the cap is $K\le C^{s/\alpha}$.  The no-decay optimum is $K_0\asymp C^{1/(m+1)}$.  Hence the cap is inactive iff $s\ge\alpha/(m+1)$.  If active, cap bias is
-\[
- K^{1-b}\asymp C^{-(b-1)s/\alpha},
-\]
-which proves the AdamW exponent in the main paper.
+Thus $\delta/(\mu+\delta)$ is an irreducible shrinkage floor and active modes require $\mu\gtrsim\max\{n^{-1},\delta\}$.  If $\delta(C)=C^{-s}$, the cap is $K\le C^{s/\alpha}$.  Comparing it with the no-decay optimum proves the AdamW exponent in the main paper.
 
 \section{Feature-Map Results}
 
-\subsection{Band-limited mixing}
-Partition indices into bands $B_\ell$ with $\kappa^{-1}\Lambda_\ell\le\lambda_i\le\kappa\Lambda_\ell$.  Let the coordinate rotation be block diagonal across these bands.  In optimizer coordinates, every diagonal covariance entry in band $\ell$ lies between $\kappa^{-1}\Lambda_\ell$ and $\kappa\Lambda_\ell$.  Therefore the diagonal preconditioner is within constants of $(\Lambda_\ell+\rho)^{-1/2}I$ on that block.  Congruence gives
-\[
- \widetilde\mu_i\asymp_\kappa\lambda_i(\lambda_i+\rho)^{-1/2},
-\]
-so $\theta=1$.
+\paragraph{Band-limited mixing.}
+Partition indices into bands $B_\ell$ with $\kappa^{-1}\Lambda_\ell\le\lambda_i\le\kappa\Lambda_\ell$.  If rotations are block diagonal across these bands, every coordinate variance in a band is comparable to $\Lambda_\ell$.  Hence the diagonal preconditioner is within constants of $(\Lambda_\ell+\rho)^{-1/2}I$ on the block, yielding $\widetilde\mu_i\asymp_\kappa\lambda_i(\lambda_i+\rho)^{-1/2}$.
 
-\subsection{Flat coordinates}
-If $d_{\min}\le\Sigma_{jj}\le d_{\max}$ and $d_{\max}/d_{\min}\le\kappa$, then
-\[
- (d_{\max}+\rho)^{-1/2}I\pre P\pre(d_{\min}+\rho)^{-1/2}I.
-\]
-Congruence by $\Sigma^{1/2}$ shows every effective eigenvalue is within constants of the original eigenvalue.  Hence $\theta=0$.  The same exponent conclusion holds when the preconditioner condition number is subpolynomial in dimension.
+\paragraph{Flat coordinates.}
+If $d_{\min}\le\Sigma_{jj}\le d_{\max}$ and $d_{\max}/d_{\min}\le\kappa$, then $P$ is scalar-comparable, and every effective eigenvalue is within constants of the original eigenvalue.  The same exponent conclusion holds when the diagonal-preconditioner condition number is subpolynomial in dimension.
 
-\subsection{Gaussian sketches}
-For sketch row $s_j\sim\mathcal N(0,I/D)$,
-\[
- d_j=s_j^\top Hs_j,
- \qquad \E d_j=\tr(H)/D.
-\]
-Weighted chi-square concentration gives
+\paragraph{Gaussian sketches.}
+For $s_j\sim\mathcal N(0,I/D)$, $d_j=s_j^\top Hs_j$ and $\E d_j=\tr(H)/D$.  Weighted chi-square concentration gives
 \[
  \Pr\left(|d_j-\tr(H)/D|\ge t\tr(H)/D\right)
  \le2\exp\{-c\min(t^2r_{\rm eff},tr_{\rm st})\},
 \]
-where $r_{\rm eff}=\tr(H)^2/\tr(H^2)$ and $r_{\rm st}=\tr(H)/\|H\|_{\rm op}$.  When these ranks are sufficiently large, a union bound gives a flat diagonal.  More generally, globally mixed rows do not inherit the ordered eigenvalue profile, and our measured $\qeff$ diagnostic determines the visible regime empirically.
+where $r_{\rm eff}=\tr(H)^2/\tr(H^2)$ and $r_{\rm st}=\tr(H)/\|H\|_{\rm op}$.  When these ranks are sufficiently large, a union bound gives a flat diagonal.  Otherwise, measured $\qeff$ determines the finite-dimensional visible regime.
 
 \section{Diagnostic Consistency}
 
@@ -366,31 +290,16 @@ Suppose on a rank window $i\in[L,U]$,
  \widetilde\mu_i=c_\mu i^{-\alpha}e^{\delta_i},
  \qquad |\varepsilon_i|,|\delta_i|\le\eta.
 \]
-For $x_i=\log i$, least-squares slope error is
-\[
- \widehat a-a=-\frac{\sum_i(x_i-\bar x)\varepsilon_i}{\sum_i(x_i-\bar x)^2},
-\]
-so $|\widehat a-a|\lesssim\eta/\log(U/L)$, and similarly for $\widehat\alpha$.  If $a$ is bounded away from zero,
-\[
- |\widehat q-q|\lesssim\frac\eta{\log(U/L)},
- \qquad q=1-\alpha/a.
-\]
-This justifies the empirical $\qeff$ diagnostic on approximately power-law windows.
+Least-squares slope errors are $O(\eta/\log(U/L))$.  If $a$ is bounded away from zero, the same order controls $|\widehat q-q|$, where $q=1-\alpha/a$.
 
-\section{Experimental Details and Additional Results}
+\section{Experimental Details}
 
-All stochastic runs use mini-batch Gaussian regression, geometric checkpoints, and optimizer-specific learning-rate grids.  Targets are constructed in the population eigenbasis with source energies $i^{-b}$.  We average over independent trials and report the learning rate with the best final mean risk.  The code logs the current effective covariance induced by the second-moment preconditioner and fits $\qeff$ on a central rank window.
+All stochastic runs use mini-batch Gaussian regression, geometric checkpoints, and optimizer-specific learning-rate grids.  Targets are constructed in the population eigenbasis with source energies $i^{-b}$.  We average over independent trials and report the learning rate with the best final mean risk.  The code logs the effective covariance induced by the second-moment preconditioner and fits $\qeff$ on a central rank window.
 
-\paragraph{Main settings.}
-The visible-profile run uses dimension $2048$, $(a,b)=(1.5,1.4)$, five trials, and $\theta\in\{0,.25,.5,.75,1\}$.  Stochastic alignment uses aligned, band-limited, flat, and Haar coordinates.  The wide-LR random-feature run uses feature dimension $256$, ambient dimension $2048$, 16,000 updates, ten trials, and adaptive learning rates from $3\times10^{-4}$ to $10^{-1}$.
+The visible-profile run uses dimension $2048$, $(a,b)=(1.5,1.4)$, five trials, and $\theta\in\{0,.25,.5,.75,1\}$.  The wide-LR random-feature run uses feature dimension $256$, ambient dimension $2048$, 16,000 updates, ten trials, and adaptive learning rates from $3\times10^{-4}$ to $10^{-1}$.  Compute-optimal experiments optimize the sharp proxy over $(M,N,K)$; AdamW experiments add the compute-dependent cap.
 
-\paragraph{Source diagnostics.}
-Aligned and flat coordinates preserve the source exponent to numerical precision.  Band-limited rotations preserve source mass exactly by block and show small finite-band slope deviations.  Haar rotations can change coordinatewise source slopes, motivating explicit reporting of transformed-source diagnostics in globally mixed experiments.
-
-\paragraph{Compute experiments.}
-We numerically optimize $M^{1-b}+K^{1-b}+K/N$ over $(M,N,K)$ under $C=MN$ and the time/decay caps.  A hard-source grid verifies monotone improvement with $\theta$; a second grid verifies saturation after $a(1-\theta/2)\le b$.  Compute-dependent AdamW sweeps verify the predicted cap-active and cap-inactive phases.
+Aligned and flat coordinates preserve the source exponent to numerical precision.  Band-limited rotations preserve source mass exactly by block and show small finite-band slope deviations.  Haar rotations can change coordinatewise source slopes, motivating explicit transformed-source reporting in globally mixed experiments.
 
 \bibliography{references}
-\bibliographystyle{aaai2027}
 
 \end{document}
