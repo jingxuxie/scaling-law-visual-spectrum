@@ -12,5 +12,7 @@ paper/*.fls
 paper/*.fdb_latexmk
 paper/main.pdf
 paper/supplement.pdf
-paper/figures/*.pdf
+
+# Submission figures are source artifacts and should be committed.
+# High-resolution PNG previews may remain local; the paper uses vector PDFs.
 paper/figures/*.png
