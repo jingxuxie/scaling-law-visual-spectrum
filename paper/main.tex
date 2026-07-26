@@ -82,6 +82,9 @@ be the normalized coordinatewise second-moment preconditioner.  If
 \end{equation}
 in Loewner order, then the effective covariance has exponent $a(1-\theta/2)$.  We call $\qeff=\theta/2$ the optimizer's effective spectral-preconditioning exponent.
 
+\paragraph{Why exponents matter.}
+A constant-factor optimizer advantage saves a fixed fraction of compute.  An exponent advantage compounds as scale grows.  In the time-limited phase, replacing $q=0$ by $q=1/2$ changes the compute exponent from $(b-1)/(a+1)$ to $(b-1)/(a/2+1)$.  The resulting risk ratio grows polynomially with compute, so sufficiently large scaling can reverse conclusions drawn from a small finite-budget comparison.  This motivates measuring both final loss and the optimizer-induced spectral exponent.
+
 \paragraph{What the claim does and does not say.}
 When $\theta>0$, coordinatewise adaptivity can change the learned-mode and compute exponents.  When $\theta=0$, adaptive methods may still improve finite-time risk through scalar normalization, momentum, or stability.  Our experiments exhibit both effects.  In Haar and global Gaussian-sketch coordinates, Adam and RMSProp can beat SGD while maintaining $\qeff\approx0$; a fully spectral oracle retains $\qeff=1/2$ and wins after wider learning-rate tuning.  Thus final loss and spectral scaling are distinct quantities.
 
@@ -303,6 +306,8 @@ If $d_{\min}\le\Sigma_{jj}\le d_{\max}$ with $d_{\max}/d_{\min}=O(1)$, then $P\a
 \paragraph{Intermediate feature maps.}
 When $P\asymp(\Sigma^\theta+\rho I)^{-1/2}$ for $0<\theta<1$, the theory predicts a continuum $\qeff=\theta/2$.  This interpolation is directly tested below.
 
+\input{additional_analysis}
+
 \section{Experiments}
 
 We report final risk and $\qeff$ separately: final risk captures finite-scale performance; $\qeff$ diagnoses the spectral scaling mechanism.  All stochastic experiments use Gaussian regression with targets satisfying a source condition in the population eigenbasis; details and hyperparameter grids are in the supplement.
@@ -360,6 +365,8 @@ Figure~\ref{fig:compute} shows the resulting compute and AdamW phase diagrams. I
 \label{fig:compute}
 \end{figure*}
 
+\input{experiment_addendum}
+
 \section{Related Work}
 
 Empirical scaling laws span language modeling, generative modeling, and transfer \cite{hestness2017deep,rosenfeld2020constructive,kaplan2020scaling,henighan2020scaling,hernandez2021scaling,hoffmann2022training}.  Spectral theories connect power laws to kernel eigenvalues and task alignment \cite{bordelon2020spectrum,canatar2021spectral,bahri2021explaining}.  The closest baseline is the sharp one-pass SGD theory of \citeauthor{lin2024scaling} (\citeyear{lin2024scaling}); we add optimizer-dependent spectral geometry.
@@ -368,12 +375,14 @@ Adaptive optimization includes AdaGrad, RMSProp, Adam, and AdamW \cite{duchi2011
 
 Random features and high-dimensional regression provide tractable models of representation geometry \cite{rahimi2007random,rudi2017generalization,bach2017breaking,jacot2018neural,belkin2019reconciling,hastie2022surprises}.  Our results show that feature coordinates determine whether the same covariance spectrum is visible to an adaptive optimizer.
 
+\input{related_work_addendum}
+
 \section{Limitations and Conclusion}
 
 The analysis is for Gaussian linear regression and related feature-coordinate models.  Neural networks have non-Gaussian gradients, evolving representations, layerwise normalization, and optimization--representation interactions.  Our results are therefore a mechanism-level theory rather than a complete account of deep-network scaling.  They nevertheless isolate a falsifiable variable: the spectrum visible to second moments.
 
 Adaptive optimizers do not automatically change scaling laws.  They change spectral exponents when their coordinatewise second moments reveal covariance structure.  The visible exponent $\theta$ determines $\qeff$, the learned-mode count, compute allocation, and AdamW decay schedule.  This provides a precise criterion for when optimizer choice should enter scaling-law forecasts.
 
-\bibliography{references}
+\bibliography{references,additional_references}
 
 \end{document}
