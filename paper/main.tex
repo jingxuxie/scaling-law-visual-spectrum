@@ -1,20 +1,17 @@
-\documentclass[letterpaper]{article}
-\usepackage[submission]{aaai2027}
-\usepackage{times}
-\usepackage{helvet}
-\usepackage{courier}
-\usepackage[hyphens]{url}
-\usepackage{graphicx}
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai2027} % DO NOT CHANGE THIS
+\usepackage[hyphens]{url} % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
 \urlstyle{rm}
 \def\UrlFont{\rm}
-\usepackage{natbib}
-\usepackage{caption}
+\usepackage{natbib} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing % DO NOT CHANGE THIS
 \usepackage{booktabs}
 \usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
-\frenchspacing
-\setlength{\pdfpagewidth}{8.5in}
-\setlength{\pdfpageheight}{11in}
-\pdfinfo{/TemplateVersion (2027.1)}
+\pdfinfo{
+/TemplateVersion (2027.1)
+}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
@@ -38,8 +35,8 @@
 \newcommand{\Kvis}{K_{\rho,\theta}}
 
 \title{Visible Spectrum: When Adaptive Optimizers Change Scaling Laws}
-\author{Anonymous AAAI-27 Submission}
-\affiliations{Anonymous Institution}
+\author{Anonymous Submission}
+\affiliations{}
 
 \begin{document}
 \maketitle
@@ -47,9 +44,12 @@
 \begin{abstract}
 Scaling laws guide model, data, and compute allocation, but usually treat the optimizer as a constant-factor detail.  We show that this misses a fundamental mechanism: even in Gaussian linear regression, coordinatewise adaptive optimizers change scaling exponents only when their second moments make the covariance spectrum visible.  We introduce a \emph{visible-spectrum exponent} $\theta\in[0,1]$.  If the diagonal preconditioner learned by RMSProp or Adam is spectrally comparable to $(\Sigma^\theta+\rho I)^{-1/2}$, then
 \[
+ \begin{aligned}
  \lambda_i(P^{1/2}\Sigma P^{1/2})
- \asymp \lambda_i(\Sigma)(\lambda_i(\Sigma)^\theta+\rho)^{-1/2},
- \qquad \qeff=\theta/2.
+ &\asymp \lambda_i(\Sigma)
+   (\lambda_i(\Sigma)^\theta+\rho)^{-1/2},\\
+ \qeff&=\theta/2.
+ \end{aligned}
 \]
 For a power-law spectrum $\lambda_i\asymp i^{-a}$, the learned-mode count changes from the SGD rate $n^{1/a}$ to $n^{1/[a(1-\theta/2)]}$ before damping.  Under a source condition with exponent $b$, we obtain sharp risk and compute laws, including compute exponent
 \[
@@ -96,8 +96,7 @@ When $\theta>0$, coordinatewise adaptivity can change the learned-mode and compu
 
 \begin{figure*}[t]
 \centering
-% Replace this rule box with the final three-panel conceptual figure.
-\fbox{\rule{0pt}{1.10in}\rule{0.96\textwidth}{0pt}}
+\includegraphics[width=0.96\textwidth]{figures/figure1_visible_spectrum_mechanism}
 \caption{Visible-spectrum mechanism. Coordinatewise second moments observe $\diag(\Sigma)$. Aligned or band-limited features yield $\qeff\approx1/2$, whereas globally mixed features yield $\qeff\approx0$. The visible exponent then controls learned modes, risk, compute allocation, and AdamW decay.}
 \label{fig:overview}
 \end{figure*}
@@ -221,9 +220,13 @@ For $\theta=0$, $K_{\rho,0}(n)\asymp n^{1/a}$.
 Let $\tmu_i=\lambda_i(\tSig)$ and $\ts_i$ be transformed source energies.  For a fixed or frozen preconditioner, reduction to SGD on transformed features gives
 \begin{equation}
 \label{eq:filter-law}
- \E R_M(w_N)-\sigma^2\asymp
- \sum_{i>M}\ts_i+\sum_{i\le M}\frac{\ts_i}{1+n\tmu_i}
- +\frac1{\Neff}\sum_{i\le M}\min\{1,n^2\tmu_i^2\}.
+ \begin{aligned}
+ \E R_M(w_N)-\sigma^2
+ &\asymp \sum_{i>M}\ts_i
+ +\sum_{i\le M}\frac{\ts_i}{1+n\tmu_i}\\
+ &\quad+\frac1{\Neff}
+ \sum_{i\le M}\min\{1,n^2\tmu_i^2\}.
+ \end{aligned}
 \end{equation}
 In aligned online dynamics, all preconditioners commute with $\Sigma$; uniform coordinatewise tracking then gives the same exponents by sandwiching each scalar filter.  For general noncommuting online dynamics, we use \eqref{eq:effective-spectrum} as a spectral diagnostic and validate it empirically rather than claiming an unrestricted sharp risk theorem.
 
@@ -231,17 +234,22 @@ In aligned online dynamics, all preconditioners commute with $\Sigma$; uniform c
 \label{thm:risk}
 Assume transformed source energies $\ts_i\asymp i^{-b}$ and $1<b<\alpha+1$.  For the fixed/frozen setting above,
 \[
- \E R_M(w_N)-\sigma^2\asymp
- M^{1-b}+\Kvis(n)^{1-b}
- +\frac{\min\{M,\Kvis(n)\}}{\Neff},
+ \begin{aligned}
+ \E R_M(w_N)-\sigma^2
+ &\asymp M^{1-b}+\Kvis(n)^{1-b}\\
+ &\quad+\frac{\min\{M,\Kvis(n)\}}{\Neff},
+ \end{aligned}
 \]
 up to constants and logarithmic factors.
 \end{theorem}
 
 Under compute $C\asymp MN$, the pre-damping proxy is
 \[
- R(M,N,K)-\sigma^2\asymp M^{1-b}+K^{1-b}+K/N,
- \qquad K\le N^{1/\alpha}.
+ \begin{aligned}
+ R(M,N,K)-\sigma^2
+ &\asymp M^{1-b}+K^{1-b}+K/N,\\
+ K&\le N^{1/\alpha}.
+ \end{aligned}
 \]
 
 \begin{theorem}[Compute-optimal visible scaling]
@@ -255,9 +263,11 @@ Let $m=\max\{\alpha,b\}$, with $\alpha=a(1-\theta/2)$.  Then
 and
 \begin{equation}
 \label{eq:compute-exponent}
- R_\star(C)-\sigma^2\asymp C^{-\beta(\theta)},
- \qquad
- \beta(\theta)=\frac{b-1}{\max\{a(1-\theta/2),b\}+1}.
+ \begin{aligned}
+ R_\star(C)-\sigma^2&\asymp C^{-\beta(\theta)},\\
+ \beta(\theta)
+ &=\frac{b-1}{\max\{a(1-\theta/2),b\}+1}.
+ \end{aligned}
 \end{equation}
 Thus visibility improves the compute exponent until $a(1-\theta/2)\le b$, after which the problem is variance limited and the exponent saturates.
 \end{theorem}
@@ -299,14 +309,17 @@ We report final risk and $\qeff$ separately: final risk captures finite-scale pe
 
 \begin{figure*}[t]
 \centering
-% Replace this rule box with the final empirical composite figure.
-\fbox{\rule{0pt}{1.08in}\rule{0.96\textwidth}{0pt}}
-\caption{Empirical validation. Measured $\qeff$ follows visible spectral information; controlled stochastic risk improves with $\theta$; and under global mixing a spectral oracle retains $\qeff=1/2$ while coordinatewise Adam remains near zero.}
+\includegraphics[width=0.32\textwidth]{figures/figure2a_qeff_visibility}
+\hfill
+\includegraphics[width=0.30\textwidth]{figures/figure2b_theta_risk}
+\hfill
+\includegraphics[width=0.32\textwidth]{figures/figure2c_hidden_spectrum_oracle}
+\caption{Empirical visibility. Left: measured $\qeff$ follows the visible-profile prediction $\theta/2$. Center: tuned stochastic risk improves as more spectrum becomes visible. Right: under global mixing, a spectral oracle retains $\qeff=1/2$ and lower risk while coordinatewise adaptivity remains near zero.}
 \label{fig:experiments}
 \end{figure*}
 
 \paragraph{Visible-profile interpolation.}
-We train with controlled preconditioners $P_{\theta,i}=(\lambda_i^\theta+\rho)^{-1/2}$.  For $a=1.5,b=1.4$, the tuned final risk decreases monotonically from $0.318$ at $\theta=0$ to $0.0074$ at $\theta=1$, while fitted risk slopes steepen from $-0.330$ to $-1.252$.
+Figure~\ref{fig:experiments} summarizes the visibility experiments. We train with controlled preconditioners $P_{\theta,i}=(\lambda_i^\theta+\rho)^{-1/2}$.  For $a=1.5,b=1.4$, the tuned final risk decreases monotonically from $0.318$ at $\theta=0$ to $0.0074$ at $\theta=1$, while fitted risk slopes steepen from $-0.330$ to $-1.252$.
 
 \paragraph{Alignment and online adaptive methods.}
 Actual RMSProp/Adam/AdamW second moments have $\qeff\approx0.48$--$0.51$ in aligned and band-limited coordinates, but $\qeff\approx0$ in flat/Haar coordinates.  This split persists after optimizer-specific learning-rate tuning.
@@ -334,7 +347,18 @@ Haar & Spectral oracle & $1.16\!\times\!10^{-4}$ & $0.500$\\
 \end{table}
 
 \paragraph{Compute and weight decay.}
-In a hard-source case $(a,b)=(3,1.4)$, the observed compute-risk exponent improves from $0.102$ at $\theta=0$ to $0.167$ at $\theta=1$, closely matching predictions $0.100$ and $0.160$.  In a saturating case, the exponent plateaus after the predicted phase boundary.  AdamW schedule sweeps verify that $\delta(C)=C^{-s}$ recovers the no-decay law exactly when $s\ge\alpha/(m+1)$.
+Figure~\ref{fig:compute} shows the resulting compute and AdamW phase diagrams. In a hard-source case $(a,b)=(3,1.4)$, the observed compute-risk exponent improves from $0.102$ at $\theta=0$ to $0.167$ at $\theta=1$, closely matching predictions $0.100$ and $0.160$.  In a saturating case, the exponent plateaus after the predicted phase boundary.  AdamW schedule sweeps verify that $\delta(C)=C^{-s}$ recovers the no-decay law exactly when $s\ge\alpha/(m+1)$.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.32\textwidth]{figures/figure3a_compute_phase_transition}
+\hfill
+\includegraphics[width=0.32\textwidth]{figures/figure3b_allocation_exponents}
+\hfill
+\includegraphics[width=0.32\textwidth]{figures/figure3c_adamw_schedule}
+\caption{Compute and AdamW phase diagrams. Left: observed compute-risk exponents track the visibility-dependent theory. Center: optimal model, data, and learned-mode allocation exponents vary with $\theta$. Right: the AdamW decay schedule recovers the no-decay exponent only after the predicted threshold.}
+\label{fig:compute}
+\end{figure*}
 
 \section{Related Work}
 

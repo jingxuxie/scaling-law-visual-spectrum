@@ -2,24 +2,32 @@
 
 This directory contains the anonymous AAAI-27 main manuscript and technical supplement.
 
-## Required author-kit files
+## AAAI-27 author kit
 
-Download the official AAAI-27 author kit from the AAAI-27 conference page and copy these files into this directory:
+The repository includes the official author kit in `../AAAI_AuthorKit27`.
+The manuscript uses its `aaai2027.sty` and `aaai2027.bst` files directly; do
+not substitute an older style.
 
-```text
-aaai2027.sty
-aaai2027.bst
+## Figures
+
+From the repository root, generate the seven vector figure panels:
+
+```bash
+python experiments/make_figures.py
 ```
 
-Do not use an older style file for the final submission.
+This writes PDF and PNG versions under `paper/figures/`. The main manuscript
+embeds the vector PDF versions as three numbered figures.
 
 ## Main paper
 
+From `paper/`, build with the bundled style and bibliography search paths:
+
 ```bash
-pdflatex main
-bibtex main
-pdflatex main
-pdflatex main
+TEXINPUTS=../AAAI_AuthorKit27: \
+BSTINPUTS=../AAAI_AuthorKit27: \
+BIBINPUTS=.: \
+latexmk -pdf main.tex
 ```
 
 The review version should have no author-identifying information or acknowledgements. Technical content must end by page 7; only references may appear on pages 8--9.
@@ -27,20 +35,10 @@ The review version should have no author-identifying information or acknowledgem
 ## Supplement
 
 ```bash
-pdflatex supplement
-bibtex supplement
-pdflatex supplement
-pdflatex supplement
+TEXINPUTS=../AAAI_AuthorKit27: \
+BSTINPUTS=../AAAI_AuthorKit27: \
+BIBINPUTS=.: \
+latexmk -pdf supplement.tex
 ```
 
 AAAI reviewers are not required to read supplementary material. All assumptions critical to evaluating the claims are therefore also stated in `main.tex`.
-
-## Figures
-
-Run from the repository root:
-
-```bash
-python experiments/make_figures.py
-```
-
-Then replace the placeholder boxes in `main.tex` with the generated figure files. See `FIGURE_PLAN.md` for the recommended composite layouts.
