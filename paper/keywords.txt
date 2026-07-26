@@ -1,0 +1,10 @@
+scaling laws
+adaptive optimization
+Adam
+RMSProp
+AdamW
+linear regression
+spectral preconditioning
+random features
+learning theory
+compute-optimal training
