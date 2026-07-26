@@ -16,10 +16,11 @@ MAIN = ROOT / "paper" / "main.tex"
 SUPP = ROOT / "paper" / "supplement.tex"
 BIB = ROOT / "paper" / "references.bib"
 
+# AAAI's official LaTeX sample loads times/helvet/courier explicitly.  These are
+# therefore required rather than prohibited.  The packages below are common
+# sources of unauthorized margin, spacing, or hyperlink changes.
+REQUIRED_PACKAGES = {"times", "helvet", "courier", "url", "graphicx", "natbib", "caption"}
 PROHIBITED_PACKAGES = {
-    "times",
-    "helvet",
-    "courier",
     "hyperref",
     "fullpage",
     "geometry",
@@ -63,8 +64,13 @@ def check_file(path: Path, is_main: bool) -> list[str]:
     bad = sorted(used & PROHIBITED_PACKAGES)
     if bad:
         errors.append(f"{path}: prohibited or format-risk packages: {bad}")
+    missing_required = sorted(REQUIRED_PACKAGES - used)
+    if missing_required:
+        errors.append(f"{path}: missing official-template packages: {missing_required}")
     if "\\usepackage[submission]{aaai2027}" not in text:
         errors.append(f"{path}: missing AAAI-27 submission style")
+    if "\\setlength{\\pdfpagewidth}{8.5in}" not in text or "\\setlength{\\pdfpageheight}{11in}" not in text:
+        errors.append(f"{path}: missing official US-Letter PDF dimensions")
     if "\\bibliographystyle" in text:
         errors.append(f"{path}: remove manual bibliographystyle; AAAI style sets it")
     if is_main:
