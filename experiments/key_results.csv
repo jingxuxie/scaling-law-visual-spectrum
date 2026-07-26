@@ -19,7 +19,10 @@ compute_hard,theta=0.25,risk_exponent,0.113190615,0.110344828
 compute_hard,theta=0.50,risk_exponent,0.127795252,0.123076923
 compute_hard,theta=0.75,risk_exponent,0.147560153,0.139130435
 compute_hard,theta=1.00,risk_exponent,0.166664736,0.160000000
+random_feature,aligned_sgd,q_eff,0.000000000,0.000000000
+random_feature,aligned_rmsprop,q_eff,0.489421035,0.500000000
 random_feature,aligned_adam,q_eff,0.491395868,0.500000000
+random_feature,aligned_adamw,q_eff,0.494633414,0.500000000
 random_feature,band_adam,q_eff,0.480586190,0.500000000
 random_feature,gaussian_sketch_adam,q_eff,-0.027817252,0.000000000
 random_feature,haar_adam,q_eff,-0.024347537,0.000000000
