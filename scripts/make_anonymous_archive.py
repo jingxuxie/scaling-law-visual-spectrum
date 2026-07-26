@@ -3,9 +3,8 @@
 Run from the repository root:
     python scripts/make_anonymous_archive.py
 
-The archive excludes Git metadata, generated PDFs, identifying project metadata,
-and this submission-management script itself. Inspect the resulting ZIP before
-uploading it to OpenReview.
+The archive excludes Git metadata, repository-management files, generated PDFs,
+and identifying project metadata. Inspect the resulting ZIP before upload.
 """
 
 from __future__ import annotations
@@ -17,13 +16,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "anonymous_code_supplement.zip"
 
+# Submission-management scripts contain the identity patterns they are designed
+# to detect, and the root README points to the non-anonymous development repo.
+# Neither is needed to reproduce the scientific results.
 EXCLUDE_PARTS = {
     ".git",
     ".github",
+    "scripts",
     "__pycache__",
     ".venv",
 }
 EXCLUDE_FILES = {
+    "README.md",  # root and directory-level management/build notes
     "SUBMISSION_CHECKLIST.md",
     "anonymous_code_supplement.zip",
 }
@@ -42,7 +46,7 @@ def included(path: Path) -> bool:
         return False
     if path.name in EXCLUDE_FILES:
         return False
-    if path.suffix in {".pdf", ".aux", ".bbl", ".blg", ".log", ".out"}:
+    if path.suffix in {".pdf", ".aux", ".bbl", ".blg", ".log", ".out", ".fls", ".fdb_latexmk"}:
         return False
     return path.is_file()
 
