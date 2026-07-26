@@ -36,16 +36,12 @@ jobs:
         with:
           root_file: main.tex
           working_directory: paper
-          latexmk_use_xelatex: false
-          latexmk_shell_escape: false
 
       - name: Compile technical supplement
         uses: xu-cheng/latex-action@v3
         with:
           root_file: supplement.tex
           working_directory: paper
-          latexmk_use_xelatex: false
-          latexmk_shell_escape: false
 
       - name: Audit AAAI page limit
         run: python scripts/check_pdf_pages.py
