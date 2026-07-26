@@ -1,15 +1,14 @@
 \documentclass[letterpaper]{article}
 \usepackage[submission]{aaai2027}
-\usepackage{times}
-\usepackage{helvet}
-\usepackage{courier}
-\usepackage{url}
+\usepackage[hyphens]{url}
 \usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
-\usepackage{enumitem}
 \urlstyle{rm}
 \def\UrlFont{\rm}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
+\frenchspacing
 \pdfinfo{/TemplateVersion (2027.1)}
 
 \newtheorem{theorem}{Theorem}
@@ -82,7 +81,7 @@ in Loewner order, then the effective covariance has exponent $a(1-\theta/2)$.  W
 When $\theta>0$, coordinatewise adaptivity can change the learned-mode and compute exponents.  When $\theta=0$, adaptive methods may still improve finite-time risk through scalar normalization, momentum, or stability.  Our experiments exhibit both effects.  In Haar and global Gaussian-sketch coordinates, Adam and RMSProp can beat SGD while maintaining $\qeff\approx0$; a fully spectral oracle retains $\qeff=1/2$ and wins after wider learning-rate tuning.  Thus final loss and spectral scaling are distinct quantities.
 
 \paragraph{Contributions.}
-\begin{enumerate}[leftmargin=1.25em,itemsep=0.15em]
+\begin{enumerate}
  \item We prove that online gradient second moments track coordinate variances and give an explicit high-probability EMA-tracking condition.
  \item We introduce visible spectral comparability and prove that it determines the effective spectrum and $\qeff=\theta/2$.
  \item We derive matching risk filters, learned-mode laws, compute-optimal allocations, and a visibility phase transition.
@@ -92,11 +91,9 @@ When $\theta>0$, coordinatewise adaptivity can change the learned-mode and compu
 
 \begin{figure*}[t]
 \centering
-\fbox{\begin{minipage}{0.96\textwidth}
-\textbf{Figure 1 placeholder---the visible-spectrum mechanism.}
-Panel (a): $\E[g_j^2\mid e]\asymp c_e\Sigma_{jj}$, so coordinatewise adaptive methods see $\diag(\Sigma)$.  Panel (b): aligned/band-limited features yield $P\approx(\Sigma+\rho I)^{-1/2}$ and $\qeff\approx1/2$; Haar/global sketches yield $P\approx cI$ and $\qeff\approx0$.  Panel (c): $\theta$ determines the learned-mode count, compute exponent, and AdamW decay threshold.
-\end{minipage}}
-\caption{Adaptive optimizers change spectral scaling only when their coordinatewise second moments expose spectral structure.}
+% Replace this rule box with the final three-panel conceptual figure.
+\fbox{\rule{0pt}{1.10in}\rule{0.96\textwidth}{0pt}}
+\caption{Visible-spectrum mechanism. Coordinatewise second moments observe $\diag(\Sigma)$. Aligned or band-limited features yield $\qeff\approx1/2$, whereas globally mixed features yield $\qeff\approx0$. The visible exponent then controls learned modes, risk, compute allocation, and AdamW decay.}
 \label{fig:overview}
 \end{figure*}
 
@@ -196,8 +193,7 @@ Consequently, before the damping knee,
 \end{theorem}
 
 \begin{proof}
-The nonzero eigenvalues of $P^{1/2}\Sigma P^{1/2}$ equal those of $\Sigma^{1/2}P\Sigma^{1/2}$.  Congruencing \eqref{eq:visible} by $\Sigma^{1/2}$ sandwiches this matrix between constant multiples of
-$\Sigma(\Sigma^\theta+\rho I)^{-1/2}$, whose eigenvalues are the right-hand side of \eqref{eq:effective-spectrum}.  The min--max principle completes the proof.
+The nonzero eigenvalues of $P^{1/2}\Sigma P^{1/2}$ equal those of $\Sigma^{1/2}P\Sigma^{1/2}$.  Congruencing \eqref{eq:visible} by $\Sigma^{1/2}$ sandwiches this matrix between constant multiples of $\Sigma(\Sigma^\theta+\rho I)^{-1/2}$, whose eigenvalues are the right-hand side of \eqref{eq:effective-spectrum}.  The min--max principle completes the proof.
 \end{proof}
 
 Let
@@ -217,18 +213,18 @@ For $\theta=0$, $K_{\rho,0}(n)\asymp n^{1/a}$.
 
 \subsection{Risk and compute}
 
-Let $\tmu_i=\lambda_i(\tSig)$ and $\ts_i$ be transformed source energies.  Reduction to SGD on transformed features gives the sharp filter form
+Let $\tmu_i=\lambda_i(\tSig)$ and $\ts_i$ be transformed source energies.  For a fixed or frozen preconditioner, reduction to SGD on transformed features gives
 \begin{equation}
 \label{eq:filter-law}
  \E R_M(w_N)-\sigma^2\asymp
  \sum_{i>M}\ts_i+\sum_{i\le M}\frac{\ts_i}{1+n\tmu_i}
  +\frac1{\Neff}\sum_{i\le M}\min\{1,n^2\tmu_i^2\}.
 \end{equation}
-The statement holds for a frozen preconditioner, and for online methods whose preconditioners remain uniformly sandwiched by constant multiples of the same visible profile.  The supplement gives matching spectral-sum bounds.
+In aligned online dynamics, all preconditioners commute with $\Sigma$; uniform coordinatewise tracking then gives the same exponents by sandwiching each scalar filter.  For general noncommuting online dynamics, we use \eqref{eq:effective-spectrum} as a spectral diagnostic and validate it empirically rather than claiming an unrestricted sharp risk theorem.
 
 \begin{theorem}[Visible-spectrum risk law]
 \label{thm:risk}
-Assume transformed source energies $\ts_i\asymp i^{-b}$ and $1<b<\alpha+1$.  Then
+Assume transformed source energies $\ts_i\asymp i^{-b}$ and $1<b<\alpha+1$.  For the fixed/frozen setting above,
 \[
  \E R_M(w_N)-\sigma^2\asymp
  M^{1-b}+\Kvis(n)^{1-b}
@@ -298,11 +294,9 @@ We report final risk and $\qeff$ separately: final risk captures finite-scale pe
 
 \begin{figure*}[t]
 \centering
-\fbox{\begin{minipage}{0.96\textwidth}
-\textbf{Figure 2 placeholder---empirical validation.}
-Panel (a): measured $\qeff$ for aligned, band-limited, synthetic $\theta$ profiles, Haar, and Gaussian sketches.  Panel (b): tuned stochastic risk curves across $\theta$.  Panel (c): wide-LR random-feature results showing near-zero $\qeff$ for coordinatewise Adam under global mixing but $\qeff=1/2$ and lower risk for the spectral oracle.
-\end{minipage}}
-\caption{The measured optimizer exponent follows visible spectral information.}
+% Replace this rule box with the final empirical composite figure.
+\fbox{\rule{0pt}{1.08in}\rule{0.96\textwidth}{0pt}}
+\caption{Empirical validation. Measured $\qeff$ follows visible spectral information; controlled stochastic risk improves with $\theta$; and under global mixing a spectral oracle retains $\qeff=1/2$ while coordinatewise Adam remains near zero.}
 \label{fig:experiments}
 \end{figure*}
 
@@ -352,6 +346,5 @@ The analysis is for Gaussian linear regression and related feature-coordinate mo
 Adaptive optimizers do not automatically change scaling laws.  They change spectral exponents when their coordinatewise second moments reveal covariance structure.  The visible exponent $\theta$ determines $\qeff$, the learned-mode count, compute allocation, and AdamW decay schedule.  This provides a precise criterion for when optimizer choice should enter scaling-law forecasts.
 
 \bibliography{references}
-\bibliographystyle{aaai2027}
 
 \end{document}
