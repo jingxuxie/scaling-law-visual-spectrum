@@ -1,0 +1,128 @@
+% Additional main-paper theory used to fill the AAAI technical-content budget.
+
+\subsection{Formal sufficient conditions}
+
+The visible-spectrum definition is deliberately coordinate-free: it states what geometry the learned diagonal preconditioner realizes, without assuming how the feature coordinates were constructed.  The following results connect it to concrete feature maps.
+
+\begin{proposition}[Band-limited mixing preserves visibility]
+\label{prop:band-visibility}
+Suppose the eigenvalues are partitioned into contiguous bands $B_1,\ldots,B_L$ with scales $\Lambda_\ell$ such that
+\[
+ \kappa^{-1}\Lambda_\ell\le\lambda_i(\Sigma)\le\kappa\Lambda_\ell,
+ \qquad i\in B_\ell,
+\]
+for a scale-independent $\kappa$.  If the optimizer basis is obtained by an orthogonal rotation that is block diagonal over these bands, then the coordinatewise preconditioner satisfies
+\[
+ P\asymp_\kappa(\Sigma+\rho I)^{-1/2}.
+\]
+Consequently $\theta=1$, $\qeff=1/2$, and source mass is preserved exactly within every invariant band.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Within band $B_\ell$, every coordinate variance is a Rayleigh quotient of the corresponding covariance block and therefore lies in $[\kappa^{-1}\Lambda_\ell,\kappa\Lambda_\ell]$.  Hence the diagonal entries of $P$ are all within constants of $(\Lambda_\ell+\rho)^{-1/2}$.  Congruencing the block covariance by $P^{1/2}$ yields effective eigenvalues comparable to $\lambda_i(\lambda_i+\rho)^{-1/2}$.  Because both the covariance and preconditioner leave the band invariant, the quadratic source mass in that block is unchanged under the transformed-coordinate map.  Full details are in the supplement.
+\end{proof}
+
+\begin{proposition}[Flat diagonals hide spectral order]
+\label{prop:flat-visibility}
+Suppose $d_{\min}\le\Sigma_{jj}\le d_{\max}$ and $d_{\max}/d_{\min}\le\kappa$, where $\kappa$ is independent of scale.  Then
+\[
+ (d_{\max}+\rho)^{-1/2}\Sigma
+ \pre P^{1/2}\Sigma P^{1/2}
+ \pre(d_{\min}+\rho)^{-1/2}\Sigma.
+\]
+Thus the original and effective spectra have the same power-law exponent, so $\theta=0$ and $\qeff=0$.  The same exponent conclusion holds when $\kappa$ grows subpolynomially with model dimension.
+\end{proposition}
+
+The proposition explains why a change of basis can remove the exponent advantage without removing the useful covariance spectrum itself.  Diagonal adaptivity becomes scalar-comparable, while a full spectral preconditioner can still flatten the eigenvalues.
+
+\begin{proposition}[A sufficient Gaussian-sketch condition]
+\label{prop:gaussian-sketch}
+Let the $M$ sketch rows be independent $s_j\sim\mathcal N(0,I_D/D)$ and let $d_j=s_j^\top Hs_j$.  Define
+\[
+ r_{\rm eff}=\frac{\tr(H)^2}{\tr(H^2)},
+ \qquad
+ r_{\rm st}=\frac{\tr(H)}{\|H\|_{\rm op}}.
+\]
+There is a universal $c>0$ such that, for $t\in(0,1)$,
+\[
+ \Pr\!\left(\max_{j\le M}
+ \frac{|d_j-\tr(H)/D|}{\tr(H)/D}>t\right)
+ \le2M\exp\{-c\min(t^2r_{\rm eff},tr_{\rm st})\}.
+\]
+Whenever the right-hand side tends to zero, the sketch-coordinate variances are uniformly flat and Proposition~\ref{prop:flat-visibility} applies.
+\end{proposition}
+
+This result is a sufficient condition, not a claim that every finite Gaussian sketch is perfectly flat.  In low effective-rank regimes, finite-dimensional fluctuations remain, and we directly measure the induced $\qeff$ rather than assigning a limiting value by assumption.  This distinction is important in the random-feature experiments below.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Visible-spectrum regimes before the damping knee.}
+\label{tab:regimes}
+\begin{tabular}{lccc}
+\toprule
+Feature geometry & $\theta$ & $\qeff$ & Learned modes $K(n)$\\
+\midrule
+Aligned / band limited & $1$ & $1/2$ & $n^{2/a}$\\
+Partial visibility & $(0,1)$ & $\theta/2$ & $n^{1/[a(1-\theta/2)]}$\\
+Flat / global mixing & $0$ & $0$ & $n^{1/a}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Further Consequences of Visible Spectrum}
+
+\subsection{Time-limited and variance-limited phases}
+
+The compute theorem has a useful piecewise interpretation.  Define the critical visibility
+\[
+ \theta_c=2\left(1-\frac ba\right).
+\]
+When $0<\theta_c<1$,
+\begin{equation}
+\label{eq:phase-transition}
+ \beta(\theta)=
+ \begin{cases}
+ \dfrac{b-1}{a(1-\theta/2)+1}, & 0\le\theta\le\theta_c,\\[7pt]
+ \dfrac{b-1}{b+1}, & \theta\ge\theta_c.
+ \end{cases}
+\end{equation}
+Before $\theta_c$, optimization cannot expose modes as quickly as the variance-optimal rate and more visibility improves the compute exponent.  After $\theta_c$, bias and variance balance at $K\asymp N^{1/b}$; further flattening changes constants and the optimal scalar learning-rate schedule, but not the asymptotic compute exponent.  This explains why some of our compute sweeps improve monotonically over the full interval while others saturate early.
+
+\subsection{Why tuning cannot replace spectral visibility}
+
+The distinction between constants and exponents can be stated as an asymptotic separation result.  Let
+\[
+ \beta(q)=\frac{b-1}{\max\{a(1-q),b\}+1}
+\]
+be the compute exponent associated with an effective spectral exponent $q$.
+
+\begin{proposition}[Hidden-spectrum oracle separation]
+\label{prop:oracle-separation}
+Suppose a coordinatewise method is scalar-comparable, so $q_{\rm coord}=0$, while a spectral oracle realizes $q_{\rm spec}=1/2$.  If $\beta(1/2)>\beta(0)$, then
+\[
+ \frac{R^\star_{\rm coord}(C)-\sigma^2}
+ {R^\star_{\rm spec}(C)-\sigma^2}
+ \asymp C^{\beta(1/2)-\beta(0)}\longrightarrow\infty.
+\]
+No scalar learning-rate retuning can remove this asymptotic gap.
+\end{proposition}
+
+\begin{proof}
+The compute theorem gives $R_q^\star(C)-\sigma^2\asymp C^{-\beta(q)}$.  Taking the ratio proves the displayed result.  Replacing the effective horizon $n$ by $cn$ multiplies each spectral-filter term by a $c$-dependent constant but does not change its power in $n$ or $C$.
+\end{proof}
+
+This proposition motivates the spectral-oracle control in Figure~\ref{fig:experiments}.  In globally mixed coordinates, coordinatewise Adam can improve finite-time normalization while remaining in the $q=0$ class; the oracle reveals the performance left on the table when the same spectrum is available but hidden from a diagonal preconditioner.
+
+\subsection{A measurable mechanism variable}
+
+For an approximately power-law fitting window, let $\widehat a$ be the fitted exponent of $\Sigma$ and $\widehat\alpha$ the fitted exponent of $P^{1/2}\Sigma P^{1/2}$.  We use
+\[
+ \widehat q_{\rm eff}=1-\frac{\widehat\alpha}{\widehat a}.
+\]
+If the log spectra deviate from straight lines by at most $\eta$ over ranks $[L,U]$, ordinary least-squares perturbation gives
+\[
+ |\widehat q_{\rm eff}-q_{\rm eff}|
+ \lesssim\frac{\eta}{\log(U/L)}
+\]
+when $a$ is bounded away from zero.  Thus $\qeff$ is not merely a visualization: it is a consistent diagnostic on widening power-law windows.  It also separates two questions that final loss alone cannot: whether an optimizer improves current performance, and whether it changes the asymptotic spectral class.
