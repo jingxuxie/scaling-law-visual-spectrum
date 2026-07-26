@@ -9,10 +9,51 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - run: python scripts/check_submission.py
-      - run: python experiments/validate_claims.py
-      - run: python experiments/robustness_sweep.py
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate source and numerical claims
+        run: |
+          python scripts/check_submission.py
+          python experiments/validate_claims.py
+          python experiments/robustness_sweep.py
+
+      - name: Generate vector figures
+        run: python experiments/make_figures.py
+
+      - name: Stage official AAAI style files
+        run: |
+          cp AAAI_AuthorKit27/aaai2027.sty paper/
+          cp AAAI_AuthorKit27/aaai2027.bst paper/
+
+      - name: Compile AAAI main paper
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper
+          latexmk_use_xelatex: false
+          latexmk_shell_escape: false
+
+      - name: Compile technical supplement
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: supplement.tex
+          working_directory: paper
+          latexmk_use_xelatex: false
+          latexmk_shell_escape: false
+
+      - name: Audit AAAI page limit
+        run: python scripts/check_pdf_pages.py
+
+      - name: Upload compiled submission
+        uses: actions/upload-artifact@v4
+        with:
+          name: aaai27-submission-pdfs
+          path: |
+            paper/main.pdf
+            paper/supplement.pdf
