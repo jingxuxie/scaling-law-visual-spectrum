@@ -1,9 +1,9 @@
 \section{Implications for Optimizer-Aware Scaling}
 
-The visible-spectrum viewpoint separates four optimizer quantities that are often bundled together in empirical comparisons.  The visible exponent $\theta$ controls the spectral power; the damping $\rho$ controls the range over which that power is active; first-moment momentum $\beta_1$ changes temporal constants and stability; and AdamW decay $\delta$ caps how many modes can remain active.  Treating all four as a single ``optimizer choice'' obscures which part can alter an extrapolated scaling law.
+The visible-spectrum viewpoint separates four quantities that are often bundled together as ``optimizer choice.''  Visibility $\theta$ controls the spectral power, damping $\rho$ controls the range where that power is active, first-moment momentum $\beta_1$ changes temporal constants and stability, and AdamW decay $\delta$ caps the active mode count.  Only the first quantity changes the local spectral exponent directly.
 
 \paragraph{Component ablation.}
-Table~\ref{tab:optimizer-components} illustrates the separation in aligned stochastic training.  RMSProp, Adam, and AdamW learn nearly the same $\qeff\approx1/2$, although they use different momentum and shrinkage mechanisms.  SGD has $\qeff=0$.  These measurements support the theoretical prediction that the second-moment geometry determines the spectral exponent, while first-moment momentum and moderate finite-horizon decay primarily alter constants.  The AdamW compute theorem explains when this ceases to be true asymptotically: fixed positive decay eventually caps the learned-mode count even though the instantaneous preconditioned spectrum still has $\qeff\approx1/2$.
+Table~\ref{tab:optimizer-components} confirms this separation in aligned stochastic training.  RMSProp, Adam, and AdamW learn almost identical $\qeff\approx1/2$, despite adding momentum and shrinkage, whereas SGD has $\qeff=0$.  Moderate finite-horizon decay therefore leaves the instantaneous spectral exponent intact; Theorem~\ref{thm:adamw} explains why fixed positive decay can nevertheless cap scaling asymptotically.
 
 \begin{table}[t]
 \centering
@@ -22,20 +22,5 @@ AdamW & $+$ decoupled decay & $0.495$\\
 \end{tabular}
 \end{table}
 
-\paragraph{Forecasting from a pilot scale.}
-Suppose a pilot run yields a stable covariance slope $\widehat a$, transformed-source slope $\widehat b$, and optimizer diagnostic $\widehat q_{\rm eff}$.  The theory predicts active effective exponent
-\[
- \widehat\alpha=\widehat a(1-\widehat q_{\rm eff})
-\]
-and compute-risk exponent
-\[
- \widehat\beta=
- \frac{\widehat b-1}{\max\{\widehat\alpha,\widehat b\}+1}.
-\]
-This estimate is meaningful only while the fitting window remains before the damping knee and the visible profile remains stable with scale.  Accordingly, an optimizer-aware scaling report should include not only a loss fit, but also the rank window, $\widehat q_{\rm eff}$, the estimated damping knee, and a transformed-source diagnostic.  These quantities make explicit which extrapolation assumptions can fail.
-
-\paragraph{Feature design and optimizer design interact.}
-Visibility is a property of the optimizer \emph{and} representation.  An orthogonal change of coordinates preserves covariance eigenvalues and the Bayes problem, but can transform coordinatewise Adam from a spectral preconditioner into a scalar one.  Consequently, representation choices such as whitening, feature mixing, blocking, and parameter grouping can change optimizer scaling even without changing the represented function class.  Conversely, band-aware parameter groups or matrix preconditioners can restore access to spectral structure that a globally mixed diagonal method cannot exploit.  This suggests that optimizer comparisons across architectures should report the coordinate geometry induced by parameterization rather than interpreting optimizer names as architecture-independent objects.
-
-\paragraph{When the visible exponent can drift.}
-The present theory assumes a scale-stable visible profile.  In neural networks, feature learning, normalization, and changing layer widths can cause $\theta$, $\rho$, or the source exponent to drift.  Such drift does not invalidate the mechanism; it turns $\qeff$ into a scale-dependent diagnostic.  A direct empirical test is therefore to measure $\qeff$ at several pilot scales.  Stable values support a single exponent forecast, while systematic drift predicts broken or piecewise scaling laws.  This provides a concrete route from the solvable linear model to falsifiable diagnostics in larger systems.
+\paragraph{Forecasting and representation design.}
+A pilot run with stable estimates $(\widehat a,\widehat b,\widehat q_{\rm eff})$ predicts effective exponent $\widehat\alpha=\widehat a(1-\widehat q_{\rm eff})$ and compute exponent $(\widehat b-1)/(\max\{\widehat\alpha,\widehat b\}+1)$.  Such a forecast should also report the fitting window, damping knee, and transformed-source diagnostic.  Visibility is jointly determined by optimizer and representation: whitening or global mixing can turn coordinatewise Adam into a scalar method without changing covariance eigenvalues, whereas band-aware groups or matrix preconditioners can restore spectral access.  In larger models, measuring $\qeff$ at several pilot scales tests whether the visible profile is stable; systematic drift predicts broken or piecewise scaling rather than a single global exponent.
