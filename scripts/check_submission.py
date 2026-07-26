@@ -18,6 +18,7 @@ SUPP = PAPER / "supplement.tex"
 MAIN_INPUTS = [
     PAPER / "additional_analysis.tex",
     PAPER / "experiment_addendum.tex",
+    PAPER / "discussion_addendum.tex",
     PAPER / "related_work_addendum.tex",
 ]
 BIBS = [PAPER / "references.bib", PAPER / "additional_references.bib"]
