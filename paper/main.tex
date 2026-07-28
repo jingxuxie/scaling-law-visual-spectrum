@@ -63,13 +63,13 @@ We separate Adam's components: second moments determine the spectral exponent, f
 
 \section{Introduction}
 
-Scaling laws have become a practical design tool for modern AI systems.  They forecast loss as data, parameters, and compute increase, and they motivate compute-optimal training recipes \cite{hestness2017deep,kaplan2020scaling,henighan2020scaling,hoffmann2022training}.  Yet the optimizer is usually treated as a constant-factor detail.  This is surprising: frontier systems are typically trained with Adam or AdamW rather than vanilla SGD, optimizer hyperparameters drift with scale, and recent matrix-preconditioned methods are explicitly designed to alter training geometry \cite{kingma2015adam,loshchilov2019decoupled,vyas2024soap,qiu2025hyperparameter}.
+Scaling laws have become a practical design tool for modern AI systems.  They forecast loss as data, parameters, and compute increase, and they motivate compute-optimal training recipes \cite{hestness2017deep,kaplan2020scaling,henighan2020scaling,hoffmann2022training}.  Yet the optimizer is usually treated as a constant-factor detail.  This is surprising: frontier systems are typically trained with Adam or AdamW rather than vanilla SGD, optimizer hyperparameters drift with scale, and recent matrix-preconditioned methods are explicitly designed to alter training geometry \cite{kingma2015adam,loshchilov2019decoupled,vyas2025soap,qiu2025hyperparameter}.
 
 We ask a narrow question with broad implications:
 \begin{quote}
 \emph{When can an adaptive optimizer change a scaling exponent, rather than merely a finite-scale constant?}
 \end{quote}
-We answer in power-law Gaussian linear regression.  The setting is tractable enough for sharp proofs, yet retains the ingredients of contemporary scaling-law theory: approximation error, optimization bias, effective dimension, source conditions, feature maps, and compute allocation \cite{bartlett2020benign,hastie2022surprises,bordelon2020spectrum,canatar2021spectral,lin2024scaling}.  It also provides a controlled bridge to random-feature and sketched models, where optimizer-induced exponent shifts have recently been observed empirically \cite{ramani2026optimizer}.
+We answer in power-law Gaussian linear regression.  The setting is tractable enough for sharp proofs, yet retains the ingredients of contemporary scaling-law theory: approximation error, optimization bias, effective dimension, source conditions, feature maps, and compute allocation \cite{bartlett2020benign,hastie2022surprises,bordelon2020spectrum,canatar2021spectral,lin2024scaling}.  It also provides a controlled bridge to sketched models and to random-feature regression, where optimizer-induced exponent shifts have recently been observed empirically \cite{ramani2026optimizer}.
 
 \paragraph{Core mechanism: the optimizer sees coordinates, not eigenvalues.}
 Coordinatewise adaptive methods do not directly observe covariance eigenvalues.  They observe coordinatewise gradient second moments.  For Gaussian squared loss, those moments are proportional to the diagonal of the covariance in the optimizer coordinate system.  If optimizer coordinates align with covariance eigendirections, RMSProp/Adam behaves like damped spectral preconditioning with exponent $q=1/2$.  If the coordinates globally mix all spectral scales, the coordinate variances become nearly flat, the same adaptive rule is scalar up to constants, and the power-law spectral exponent is unchanged.  Thus two feature maps with the same eigenvalues can induce different optimizer scaling laws.
@@ -100,7 +100,7 @@ There are two optimizer effects that are easy to conflate.  A method may improve
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.96\textwidth]{figures/figure1_visible_spectrum_mechanism}
-\caption{Visible-spectrum mechanism. Coordinatewise second moments observe $\diag(\Sigma)$. Aligned or band-limited features yield $\qeff\approx1/2$, whereas globally mixed features yield $\qeff\approx0$. The visible exponent then controls learned modes, risk, compute allocation, and AdamW decay.}
+\caption{Visible-spectrum mechanism. Coordinatewise second moments track $\diag(\Sigma)$ up to a residual-dependent scalar and constant factors. Aligned or band-limited features expose the spectral profile, whereas globally mixed features with concentrated coordinate variances yield an approximately scalar preconditioner. The visible exponent then controls learned modes, risk, compute allocation, and AdamW decay.}
 \label{fig:overview}
 \end{figure*}
 
@@ -399,13 +399,18 @@ The no-decay law is recovered iff $s\ge\alpha/(m+1)$.  Fixed positive decay ($s=
 \small
 \caption{The three Adam components have distinct scaling roles.}
 \label{tab:adam-components}
-\begin{tabular}{p{0.20\columnwidth}p{0.36\columnwidth}p{0.28\columnwidth}}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}p{0.18\columnwidth}p{0.34\columnwidth}p{0.36\columnwidth}@{}}
 \toprule
 Component & Mathematical effect & Exponent effect\\
 \midrule
-Second moment & spectral preconditioner $P_t$ & determines $\qeff$\\
-Momentum & stable temporal filter & constants only\\
-AdamW decay & cap $\mu_i\gtrsim\delta$ & can reduce exponent\\
+\shortstack[l]{Second\\moment} &
+\shortstack[l]{spectral\\preconditioner $P_t$} & determines $\qeff$\\
+Momentum & stable temporal filter &
+\shortstack[l]{constants/stability;\\exponent unchanged}\\
+\shortstack[l]{Weight\\decay} &
+\shortstack[l]{$\mu_i\gtrsim\delta$ threshold;\\$K\lesssim\delta^{-1/\alpha}$} &
+\shortstack[l]{may lower exponent\\unless $\delta$ decays}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -430,27 +435,29 @@ Scalar learning-rate tuning changes constants but cannot change this exponent ga
 \section{When Is Spectrum Visible?}
 \label{sec:visibility-cases}
 
-The same population eigenspectrum can be visible or hidden depending on feature coordinates.  Table~\ref{tab:visibility-cases} summarizes sufficient conditions.
+The same population eigenspectrum can be visible or hidden depending on feature coordinates.  For comparison, a synthetic controlled profile can impose a target preconditioner directly.  Table~\ref{tab:visibility-cases} separates these settings.
 
 \begin{table*}[t]
 \centering
 \small
-\caption{Feature geometry determines the exponent visible to a coordinatewise optimizer.}
+\caption{Settings producing different visible-spectrum exponents.}
 \label{tab:visibility-cases}
-\begin{tabular}{llll}
+\begin{tabular}{@{}p{0.17\textwidth}p{0.29\textwidth}p{0.28\textwidth}p{0.12\textwidth}@{}}
 \toprule
-Feature geometry & Coordinate variance profile & Effective preconditioner & Predicted $\qeff$\\
+Setting & Visible structure & Effective preconditioner &
+\shortstack{Predicted\\$\qeff$}\\
 \midrule
 Eigenbasis aligned & $\Sigma_{jj}=\lambda_j$ &
 $(\Sigma+\rho I)^{-1/2}$ & $1/2$\\
-Band-limited rotation & band scale $\Lambda_\ell$ &
-bandwise spectral, up to constants & $1/2$\\
-Controlled profile & $\Sigma_{jj}\asymp\lambda_j^\theta$ &
+Band-limited rotation & coordinate variances reveal band scale $\Lambda_\ell$ &
+spectrally comparable, blockwise & $1/2$\\
+\shortstack[l]{Synthetic controlled\\profile} & $P_\theta$ is imposed directly &
 $(\Sigma^\theta+\rho I)^{-1/2}$ & $\theta/2$\\
 Flat/Hadamard & $\Sigma_{jj}=\tr(\Sigma)/M$ &
 scalar & $0$\\
-Haar/global Gaussian sketch & concentrated quadratic forms &
-scalar up to constants & $0$\\
+\shortstack[l]{Haar/global\\Gaussian sketch} &
+concentrated coordinate quadratic forms &
+scalar up to constants & \shortstack[l]{$\approx0$ under\\concentration}\\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -535,7 +542,7 @@ The supplement proves that this estimator is stable on approximately power-law w
 \includegraphics[width=0.30\textwidth]{figures/figure2b_theta_risk}
 \hfill
 \includegraphics[width=0.32\textwidth]{figures/figure2c_hidden_spectrum_oracle}
-\caption{Empirical visibility. Left: measured $\qeff$ follows the visible-profile prediction $\theta/2$. Center: tuned stochastic risk improves as more spectrum becomes visible. Right: under global mixing, a spectral oracle retains $\qeff=1/2$ and lower risk while coordinatewise adaptivity remains near zero.}
+\caption{Empirical spectral visibility. Left: as a controlled-profile sanity check, constructed preconditioners satisfy $\qeff=\theta/2$; the categorical inset reports independent feature-system measurements. Center: tuned stochastic excess risk decreases as the controlled visible exponent increases. Right: after a wide learning-rate sweep, the best coordinatewise adaptive method (Adam for Gaussian sketch; AdamW for Haar) remains near $\qeff=0$, while a spectral oracle retains $\qeff=1/2$ and achieves lower risk.}
 \label{fig:experiments}
 \end{figure*}
 
@@ -559,7 +566,9 @@ Table~\ref{tab:damping} evaluates the exact spectral count far below and above t
 \label{tab:damping}
 \begin{tabular}{ccrr}
 \toprule
-$\theta$ & $\rho$ & pre obs./pred. & post obs./pred.\\
+$\theta$ & $\rho$ &
+\shortstack{pre-knee $K(n)$ slope\\obs./pred.} &
+\shortstack{post-knee $K(n)$ slope\\obs./pred.}\\
 \midrule
 1.00 & $10^{-8}$ & $1.333/1.333$ & $0.668/0.667$\\
 0.75 & $10^{-6}$ & $1.065/1.067$ & $0.671/0.667$\\
@@ -578,7 +587,7 @@ Table~\ref{tab:random-feature} reports the difficult globally mixed cases after 
 \begin{table}[t]
 \centering
 \small
-\caption{Wide-LR random-feature results.}
+\caption{Mean final excess risk at the best learning rate for each optimizer over 10 trials and 16,000 updates. Slightly negative $\qeff$ estimates are finite-window deviations consistent with the $\qeff=0$ class.}
 \label{tab:random-feature}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}llrr@{}}
@@ -605,7 +614,7 @@ Figure~\ref{fig:compute} shows the compute and AdamW phase diagrams.  In a hard-
 \includegraphics[width=0.32\textwidth]{figures/figure3b_allocation_exponents}
 \hfill
 \includegraphics[width=0.32\textwidth]{figures/figure3c_adamw_schedule}
-\caption{Compute and AdamW phase diagrams. Left: observed compute-risk exponents track the visibility-dependent theory. Center: optimal model, data, and learned-mode allocation exponents vary with $\theta$. Right: the AdamW decay schedule recovers the no-decay exponent only after the predicted threshold.}
+\caption{Compute-optimal and AdamW phase diagrams. Left: the positive compute-risk exponent for hard-source $(a,b)=(3,1.4)$ and saturating $(1.5,1.4)$ settings; points show the hard-source sweep. Center: for $(a,b)=(3,1.4)$, $M_\star$ and $K_\star$ share exponent $1/(\alpha+1)$ by balancing the two source-tail terms, while $N_\star$ has exponent $\alpha/(\alpha+1)$. Right: for $(a,b,\theta)=(3,1.4,1)$, the AdamW exponent grows linearly with $s$ until $s_\star=0.6$, then plateaus at the no-decay exponent.}
 \label{fig:compute}
 \end{figure*}
 
@@ -615,7 +624,7 @@ Figure~\ref{fig:compute} shows the compute and AdamW phase diagrams.  In a hard-
 The visible-spectrum viewpoint turns several empirical optimizer questions into geometric predictions.
 
 \paragraph{Block structure should matter.}
-A diagonal method can use only the spectrum encoded in coordinate variances.  A matrix or block preconditioner can rotate into a more informative basis.  The band-limited theorem therefore predicts that Shampoo- or SOAP-style blocks help most when each block spans a narrow spectral range; mixing unrelated scales inside a block should wash out the gain.  This complements recent observations that blocking and explicit spectral normalization improve hyperparameter transfer for matrix-preconditioned optimizers \cite{vyas2024soap,qiu2025hyperparameter}.
+A diagonal method can use only the spectrum encoded in coordinate variances.  A matrix or block preconditioner can rotate into a more informative basis.  The band-limited theorem therefore predicts that Shampoo- or SOAP-style blocks help most when each block spans a narrow spectral range; mixing unrelated scales inside a block should wash out the gain.  This complements recent observations that blocking and explicit spectral normalization improve hyperparameter transfer for matrix-preconditioned optimizers \cite{vyas2025soap,qiu2025hyperparameter}.
 
 \paragraph{Optimizer constants and optimizer exponents should be reported separately.}
 A larger stable step size can yield a dramatic finite-budget improvement while leaving $\qeff=0$.  Conversely, a true exponent improvement may look modest at small scale but compound with compute.  A robust optimizer comparison should therefore report: tuned risk, the effective spectral slope, the transformed source profile, and whether the fitted range lies before or after the damping knee.  Proposition~\ref{prop:oracle-separation} explains why learning-rate tuning cannot eliminate a genuine exponent gap.
@@ -634,7 +643,7 @@ Empirical scaling laws span language modeling, generative modeling, and transfer
 \cite{hestness2017deep,rosenfeld2020constructive,kaplan2020scaling,henighan2020scaling,hernandez2021scaling,hoffmann2022training}.
 Later work also documents broken or nonmonotone regimes \cite{caballero2023broken}.
 Spectral accounts connect power laws to kernel eigenvalues, task alignment, and overparameterized regression
-\cite{bordelon2020spectrum,canatar2021spectral,bahri2021explaining,simon2024more}.
+\cite{bordelon2020spectrum,canatar2021spectral,bahri2024explaining,simon2024more}.
 The closest theoretical baseline is the sharp one-pass SGD theory of
 \citeauthor{lin2024scaling} (\citeyear{lin2024scaling}).
 Subsequent work studies data reuse and mini-batching
@@ -644,7 +653,7 @@ We keep the same power-law regression laboratory but make optimizer geometry the
 \paragraph{Optimizer-dependent scaling and hyperparameter transfer.}
 Recent random-feature experiments directly report optimizer-dependent scaling exponents \cite{ramani2026optimizer}; our work provides a complementary theorem that identifies when a coordinatewise optimizer can realize such an exponent shift.
 At larger scales, reliable optimizer comparison also requires hyperparameters that transfer across width and depth.  Maximal-update parameterization and recent matrix-preconditioner studies show that incorrect learning-rate or weight-decay scaling can erase apparent gains
-\cite{yang2022tensor,qiu2025hyperparameter}.
+\cite{yang2021tensor,qiu2025hyperparameter}.
 This motivates our optimizer-specific LR grids and the explicit AdamW decay theorem.
 
 \paragraph{Adaptive and matrix preconditioning.}
@@ -655,11 +664,11 @@ Prior theory studies convergence and generalization
 \cite{reddi2018convergence,wilson2017marginal}, together with optimizer-dependent implicit bias
 \cite{zhang2024implicit,vasudeva2025rich}.
 Natural gradient, K-FAC, Shampoo, and SOAP make matrix or rotated-basis preconditioning explicit
-\cite{amari1998natural,martens2015optimizing,gupta2018shampoo,vyas2024soap}.
+\cite{amari1998natural,martens2015optimizing,gupta2018shampoo,vyas2025soap}.
 Our distinction is geometric: scalar normalization can improve constants, whereas a change in spectral power changes the scaling-law class.
 
 \paragraph{Random features, sketches, and high-dimensional regression.}
-Random features and kernel approximations provide tractable models of representation geometry
+Random-feature, convex-neural-network, and neural-kernel models provide tractable descriptions of representation geometry
 \cite{rahimi2007random,rudi2017generalization,bach2017breaking,jacot2018neural}.
 Benign overfitting and double descent expose the role of spectral tails and effective dimension
 \cite{belkin2019reconciling,bartlett2020benign,hastie2022surprises}.
